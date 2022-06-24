@@ -8,16 +8,28 @@ router.post("/login", async(req, res)=>{
   try{
        const user = await Admin.findOne(req.body)
     if(!user){
-      res.status(400).send("Wrong Username or Password!")
+      return res.status(400).json({
+        status: false,
+        message: "Wrong Username or Password!",
+        data: null
+      })
     }
     const token = generateAuthToken(user._id.toString())
     const newUser = {
       username : user.username,
       token: token
-    }
-    res.status(200).send(newUser)
+    } 
+    return res.status(200).json({
+      status: true,
+      message: "Logon successfull!",
+      data: newUser
+    })
   }catch(err){
-    res.status(400).send("Some Other error!")
+    return res.status(400).json({
+      status: false,
+      message: err,
+      data: null
+    })
   }
 })
 

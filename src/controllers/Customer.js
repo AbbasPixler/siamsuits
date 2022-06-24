@@ -1,5 +1,6 @@
 const router = require("express").Router()
 const Customer = require("../models/customer")
+const Measurement = require("../models/measurements")
 const jwt = require("jsonwebtoken")
 const generateAuthToken = require("./../middleware/generateAuthToken")
 const auth= require("./../middleware/auth")
@@ -8,7 +9,7 @@ const auth= require("./../middleware/auth")
 // ===============creates a customer==========================
 // ===============creates a customer==========================
 
-router.post("/createCustomer", auth, async(req, res)=>{
+router.post("/create", auth, async(req, res)=>{
 try {
   if (req.body){
     const email = req.body.email
@@ -21,14 +22,19 @@ try {
       })
     }
   
-    const newCustomer = new Customer(req.body.user)
+    const newCustomer = await Customer.create(req.body.user)
+    var customerMeasurement = req.body.measurements
 
-    await newCustomer.save()
+    customerMeasurement.customer_id = newCustomer._id
+    const measurement = await Measurement.create(customerMeasurement)
     return res.status(200).json({
       status: true,
       message: "New Customer created!",
-      data: req.body.user
-    })
+      data: {
+        newCustomer,
+        measurement
+      }
+    }) 
   }
 }catch(err){
   return res.status(400).json({
@@ -44,7 +50,7 @@ try {
 // ===============Fetches all customers==========================
 
 
-router.get('/fetch_all', auth, async (req, res)=>{
+router.get('/fetchAll', auth, async (req, res)=>{
  try{
   const customers = await Customer.find()
 
